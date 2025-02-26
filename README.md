@@ -2,8 +2,9 @@
 Scripts, playbooks, etc. I have that works with vmware.
 
 
-### To load esxcli-update on an internet connected ESXi server:    
-    wget --no-check-certificate https://raw.githubusercontent.com/cshabazian/vmware/refs/heads/main/esxcli-update -O /sbin/esxcli-update  
+### esxcli-update
+This script will check for  the latest update available and install it if you wish:
+wget --no-check-certificate https://raw.githubusercontent.com/cshabazian/vmware/refs/heads/main/esxcli-update -O /sbin/esxcli-update  
     chmod 555 /sbin/esxcli-update   
 
     
