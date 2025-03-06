@@ -1,11 +1,14 @@
 #!/bin/sh
 
-# There is a memory issue with the size of the ramdisk.  In order to fix that, we need to increase the size.
-EXPAND_RAMDISK=Y # If you know you don't need to do this, change this to N
-
-###############################################################################
-##########  You shouldn't need to change anything below this point  ###########
-###############################################################################
+#####  Increase the size of the ramdisk if needed to avoid a memory issue  ####
+# https://williamlam.com/2024/03/quick-tip-using-esxcli-to-upgrade-esxi-8-x-throws-memoryerror-or-got-no-data-from-process.html
+if [ $(grep mem /usr/lib/vmware/esxcli-software | cut -d = -f 3) -lt 500 ] ; then
+esxcli system settings advanced set -o /VisorFS/VisorFSPristineTardisk -i 0
+cp /usr/lib/vmware/esxcli-software /usr/lib/vmware/esxcli-software.bak
+sed -i 's/mem=300/mem=500/g' /usr/lib/vmware/esxcli-software.bak
+mv /usr/lib/vmware/esxcli-software.bak /usr/lib/vmware/esxcli-software -f
+esxcli system settings advanced set -o /VisorFS/VisorFSPristineTardisk -i 1
+fi
 
 #########################  Gather Information Needed  #########################
 # Get the major version that is currently running
@@ -37,15 +40,9 @@ fi
 # Allow http through the firewall so we can perform the update
 esxcli network firewall ruleset set -e true -r httpClient
 
-# Increase the size of the ramdisk to avoid a memory issue
-# https://williamlam.com/2024/03/quick-tip-using-esxcli-to-upgrade-esxi-8-x-throws-memoryerror-or-got-no-data-from-process.html
-if [ "${EXPAND_RAMDISK}" = "Y" ] ; then
-esxcli system settings advanced set -o /VisorFS/VisorFSPristineTardisk -i 0
-cp /usr/lib/vmware/esxcli-software /usr/lib/vmware/esxcli-software.bak
-sed -i 's/mem=300/mem=500/g' /usr/lib/vmware/esxcli-software.bak
-mv /usr/lib/vmware/esxcli-software.bak /usr/lib/vmware/esxcli-software -f
-esxcli system settings advanced set -o /VisorFS/VisorFSPristineTardisk -i 1
-fi
+###############################  Do the update  ###############################
+esxcli software profile update -p esxcli software profile update -p $LATEST_PROFILE -d https://hostupdate.vmware.com/software/VUM/PRODUCTION/main/vmw-depot-index.xml --no-hardware-warning
+
 ###########################  End of Proceed if Yes  ###########################
 
 # Exit if No:
