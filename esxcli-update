@@ -41,7 +41,7 @@ fi
 esxcli network firewall ruleset set -e true -r httpClient
 
 ###############################  Do the update  ###############################
-esxcli software profile update -p esxcli software profile update -p $LATEST_PROFILE -d https://hostupdate.vmware.com/software/VUM/PRODUCTION/main/vmw-depot-index.xml --no-hardware-warning
+esxcli software profile update -p $LATEST_PROFILE -d https://hostupdate.vmware.com/software/VUM/PRODUCTION/main/vmw-depot-index.xml --no-hardware-warning
 
 ###########################  End of Proceed if Yes  ###########################
 
