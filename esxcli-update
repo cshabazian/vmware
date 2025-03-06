@@ -21,13 +21,14 @@ PROFILE_TYPE=$(esxcli software profile get | head -1 | cut -d - -f 4)
 LATEST_PROFILE=$(esxcli software sources profile list -d https://hostupdate.vmware.com/software/VUM/PRODUCTION/main/vmw-depot-index.xml | grep ${PROFILE_TYPE} | grep ESXi-${VMWARE_VERSION} | awk '{print $5,$1}' | sort | tail -1 | awk '{print $2}')
 
 ########################  Confirm update and proceed  ########################
-read -n1 -p "You are currently running profile version $(vmware -v | cut -d - -f 2).  Would you like to update to $(echo $LATEST_PROFILE | cut -d - -f 3)? (Y/N): " PROCEED
-
+read -p "You are currently running profile version $(vmware -v | cut -d - -f 2).  Would you like to update to $(echo $LATEST_PROFILE | cut -d - -f 3)? (Y/N): " PROCEEDANSWER
+PROCEED=${PROCEEDANSWER:0:1}
 if [ "${PROCEED}" = "Y" ] || [ "${PROCEED}" = "y" ] ; then
 
 # Ask if we can put the system into Maintenance Mode if necessary
 if [ $(esxcli system maintenanceMode get) = "Disabled" ] ; then
-read -n1 -p "In order to proceed, the system must be in Maintenance Mode.  Should I enable Maintenance Mode? (Y/N): " ENABLE_MAINTENANCE
+read -p "In order to proceed, the system must be in Maintenance Mode.  Should I enable Maintenance Mode? (Y/N): " ENABLE_MAINTENANCE_ANSWER
+ENABLE_MAINTENANCE=${ENABLE_MAINTENANCE_ANSWER:0:1}
      if [ "${ENABLE_MAINTENANCE}" = "Y" ] || [ "${ENABLE_MAINTENANCE}" = "y" ] ; then
           esxcli system maintenanceMode set --enable yes
      else
@@ -41,6 +42,7 @@ fi
 esxcli network firewall ruleset set -e true -r httpClient
 
 ###############################  Do the update  ###############################
+echo -e "\n\nBeginning the upgrade.  Please be patient as this may take a while\n\n"
 esxcli software profile update -p $LATEST_PROFILE -d https://hostupdate.vmware.com/software/VUM/PRODUCTION/main/vmw-depot-index.xml --no-hardware-warning
 
 ###########################  End of Proceed if Yes  ###########################
